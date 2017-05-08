@@ -1,13 +1,12 @@
+from dtOmitted import DecisionNode
+from dtOmitted import build_tree
 import numpy as np
-from dtOmitted import DecisionNode, build_tree
-
 class DecisionTree(object):
     """
     DecisionTree class, that represents one Decision Tree
 
     :param max_tree_depth: maximum depth for this tree.
     """
-
     def __init__(self, max_tree_depth):
         self.max_depth = max_tree_depth
 
@@ -15,54 +14,40 @@ class DecisionTree(object):
         """
         :param X: 2 dimensional python list or numpy 2 dimensional array
         :param Y: 1 dimensional python list or numpy 1 dimensional array
-
-        :return: a tree of self.max_tree_depth with helps to classify the data
         """
-
-        if type(X) is np.ndarray:
+        if not isinstance(X, list): #checking wheter X is a list or not, if not cast X to list
             X = X.tolist()
-        if type(Y) is np.ndarray:
+        if not isinstance(Y, list): #checking wheter Y is a list or not, if not cast Y to list
             Y = Y.tolist()
 
-        # In order to get a data corresponding the data structure from decision node, we join X's and Y's in the following way
-
-        data = [X[i] + [Y[i]] for i in range(len(X))]
-
+        data = [X[i][:] + [Y[i]] for i in range(len(X))] #appending Y to the last column of 2D X list
         self.root = build_tree(data, max_depth=self.max_depth)
 
-    def predict1(self, x, v):
-
-        """
-         Predict function for one row from the data X
-
-        :param x: 1 dimensional python list or numpy 1 dimensional array
-        :param v: the current node of the tree
-
-        :return: choose and recursively call on the next node based on the values of x
-        """
-
-        if v.is_leaf == True:
-            return v.result
+    def single_predict(self,entry,node): # we will recursively deepen in tree until we reach a leaf
+        if node.is_leaf==False:
+            col_val=entry[node.column] # value of the entry at best_column
+            best_val=node.value
+            if type(best_val)==int or type(best_val)==float:
+                if col_val>=best_val:
+                    return self.single_predict(entry,node.true_branch)
+                else:
+                    return self.single_predict(entry,node.false_branch)
+            else:
+                if col_val==best_val:
+                    return self.single_predict(entry, node.true_branch)
+                else:
+                    return self.single_predict(entry, node.false_branch)
         else:
-            xval = x[v.column]
-            val = v.value
-            if type(val) == int or type(val) == float:
-                if xval > val:
-                    return self.predict1(x, v.true_branch)
-                else:
-                    return self.predict1(x, v.false_branch)
-            if type(val) == str:
-                if xval == val:
-                    return self.predict1(x, v.true_branch)
-                else:
-                    return self.predict1(x, v.false_branch)
+            return node.result #if we reach a leaf return the result
 
     def predict(self, X):
         """
         :param X: 2 dimensional python list or numpy 2 dimensional array
-        calls predict1 and returns the final predicted labels for corresponding X's
-
         :return: Y - 1 dimension python list with labels
         """
+        if not isinstance(X, list):  # checking wheter X is a list or not, if not cast X to list
+            X = X.tolist()
 
-        return [self.predict1(row, self.root) for row in X]
+        Y=[self.single_predict(entry,self.root) for entry in X]
+
+        return Y

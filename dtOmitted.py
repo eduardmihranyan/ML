@@ -1,6 +1,12 @@
 import numpy as np
 from collections import defaultdict
 
+"""
+YOU MUST!!!
+Read all the lines of the code provided to you and understand what it does!
+"""
+
+
 class DecisionNode(object):
     """
     README
@@ -9,6 +15,12 @@ class DecisionNode(object):
     node = DecisionNode()  is a simple usecase for the class
     you can also initialize the class like this:
     node = DecisionNode(column = 3, value = "Car")
+    In python, when you initialize a class like this, its __init__ method is called 
+    with the given arguments. __init__() creates a new object of the class type, and initializes its 
+    instance attributes/variables.
+    In python the first argument of any method in a class is 'self'
+    Self points to the object which it is called from and corresponds to 'this' from Java
+
     """
 
     def __init__(self,
@@ -34,12 +46,12 @@ class DecisionNode(object):
         self.true_branch = true_branch
         self.current_results = current_results
         self.is_leaf = is_leaf
-        max = -1
-        for i in current_results.keys():
-            a = current_results[i]
-            if a > max:
-                max = a
-                self.result = i
+        self.result = result
+        res=0
+        for key in self.current_results.keys():
+            if self.current_results[key]>res:
+                res=self.current_results[key]
+                self.result=key
 
 
 def dict_of_values(data):
@@ -52,11 +64,14 @@ def dict_of_values(data):
     dict_of_values(data)
     should return {'yes' : 3, 'no' :1}
     """
-    results = defaultdict(int)
+    results = {}
     for row in data:
         r = row[len(row) - 1]
-        results[r] += 1
-    return dict(results)
+        if r in results:
+            results[r] += 1
+        else:
+            results[r] = 1
+    return results
 
 
 def divide_data(data, feature_column, feature_val):
@@ -74,24 +89,19 @@ def divide_data(data, feature_column, feature_val):
     param feature_val: can be int, float, or string
     return: a tuple of two 2D python lists
     """
-    data1 = []
-    data2 = []
+    #TODO
     if type(feature_val) == int or type(feature_val) == float:
-        for i in range(len(data)):
-            if data[i][feature_column] >= feature_val:
-                data1.append(data[i])
-            else:
-                data2.append(data[i])
-    if type(feature_val) == str:
-        for i in range(len(data)):
-            if data[i][feature_column] == feature_val:
-                data1.append(data[i])
-            else:
-                data2.append(data[i])
-    return (data1, data2)
+        data1=[entry for entry in data if entry[feature_column]>=feature_val]
+        data2=[entry for entry in data if entry[feature_column]<feature_val]
+    else:
+        data1=[entry for entry in data if entry[feature_column]==feature_val]
+        data2=[entry for entry in data if entry[feature_column]!=feature_val]
+
+    return data1, data2
 
 
 def gini_impurity(data1, data2):
+
     """
     Given two 2D lists of compute their gini_impurity index. 
     Remember that last column of the data lists is the Y
@@ -110,21 +120,22 @@ def gini_impurity(data1, data2):
     param data2: A 2D python list
     return: a number - gini_impurity 
     """
-    dict1, dict2 = dict_of_values(data1), dict_of_values(data2)
-    k1, k2 = list(dict1.values()), list(dict2.values())
-    N1, N2 = sum(k1), sum(k2)
-
-    p_k1, p_k2 = [x / N1 for x in k1], [x / N2 for x in k2]
-
-    gini1 = 0
-    gini2 = 0
-    for i in range(len(k1)):
-        gini1 += N1 * (p_k1[i] * (1 - p_k1[i]))
-    for i in range(len(k2)):
-        gini2 += N2 * (p_k2[i] * (1 - p_k2[i]))
-    gini = gini1 + gini2
-
-    return gini
+    #TODO
+    N1=len(data1)
+    N2=len(data2)
+    vals1=dict_of_values(data1)
+    vals2=dict_of_values(data2)
+    sumFrac1=0
+    for val in vals1:
+        p_k1=vals1[val]/N1
+        sumFrac1+=p_k1*(1.0-p_k1)
+    data1_total=N1*sumFrac1
+    sumFrac2=0
+    for val in vals2:
+        p_k2 = vals2[val] / N2
+        sumFrac2 += p_k2 * (1.0 - p_k2)
+    data2_total=N2*sumFrac2
+    return data1_total+data2_total
 
 
 def build_tree(data, current_depth=0, max_depth=1e10):
@@ -139,8 +150,9 @@ def build_tree(data, current_depth=0, max_depth=1e10):
         DecisionNode(...... true_branch=t1, false_branch=t2) 
 
 
-    In case all the points in the data have same Y we should not split any more, and return that node.
-
+    In case all the points in the data have same Y we should not split any more, and return that node
+    For this function we will give you some of the code so its not too hard for you ;)
+    
     param data: param data: A 2D python list
     param current_depth: an integer. This is used if we want to limit the numbr of layers in the
         tree
@@ -151,39 +163,51 @@ def build_tree(data, current_depth=0, max_depth=1e10):
     if len(data) == 0:
         return DecisionNode(is_leaf=True)
 
-    if (current_depth == max_depth):
+    if(current_depth == max_depth):
         return DecisionNode(current_results=dict_of_values(data))
 
-    if (len(dict_of_values(data)) == 1):
+    if(len(dict_of_values(data)) == 1):
         return DecisionNode(current_results=dict_of_values(data), is_leaf=True)
 
-    # This calculates gini number for the data before dividing
+    #This calculates gini number for the data before dividing 
     self_gini = gini_impurity(data, [])
 
-    # Below are the attributes of the best division that you need to find.
-    # You need to update these when you find a division which is better
+    #Below are the attributes of the best division that you need to find. 
+    #You need to update these when you find a division which is better
     best_gini = 1e10
     best_column = None
     best_value = None
+    #best_split is tuple (data1,data2) which shows the two datas for the best divison so far
     best_split = None
 
-    def column(matrix, i):
-        return [row[i] for row in matrix]
+    #TODO
+    #You need to find the best feature to divide the data
+    #For each feature and each possible value of the feature compute the 
+    # gini number for that division. You need to find the feature that minimizes
+    # gini number. Remember that last column of data is Y
+    # Think how you can use the divide_data and gini_impurity functions you wrote 
+    # above
+    for feature in range(len(data[0]) - 1):
+        vals = [data[i][feature] for i in range(len(data))] #extracting the feature column
+        uniq_vals = list(set(vals)) #set object stores only unique values, that's why we use set() and then make a list of unique values we got
 
-    for i in range(len(data[0]) - 1):
-        for j in column(data, i):
-            gini = gini_impurity(divide_data(data, i, j)[0], divide_data(data, i, j)[1])
-            if gini < best_gini:
-                best_gini = gini
-                best_column = i
-                best_value = j
-                best_split = (divide_data(data, i, j)[0], divide_data(data, i, j)[1])
-    # print(best_gini,best_column,best_value,best_split)
+        for val in uniq_vals:
+            (data1, data2) = divide_data(data, feature, val)
+            if len(data1) == 0 or len(data2) == 0:
+                continue
+            cur_gini = gini_impurity(data1,data2)
+            if cur_gini < best_gini:
+                best_gini = cur_gini
+                best_column = feature
+                best_value = val
+                best_split = (data1, data2)
 
-    # recursively call build tree, construct the correct return argument and return
-    t1 = build_tree(best_split[1])
-    t2 = build_tree(best_split[0])
-    return DecisionNode(best_column, best_value, t1, t2, dict_of_values(data))
+    #TODO
+    #recursively call build tree, construct the correct return argument and return
+    right_tree=build_tree(best_split[0], current_depth + 1, max_depth) #right subtree with data that has best_column bigger than or equal to best_value(in case of numbers)
+    left_tree = build_tree(best_split[1], current_depth + 1, max_depth) #left subtree with data that has best_column smaller than best_value(in case of numbers)
+    return DecisionNode(column=best_column,value=best_value,false_branch=left_tree,true_branch=right_tree,current_results=dict_of_values(data)) #<---- FIX THIS
+        
 
 
 def print_tree(tree, indent=''):
@@ -192,7 +216,7 @@ def print_tree(tree, indent=''):
         print(str(tree.current_results))
     else:
         # Print the criteria
-        # print (indent+'Current Results: ' + str(tree.current_results))
+        #         print (indent+'Current Results: ' + str(tree.current_results))
         print('Column ' + str(tree.column) + ' : ' + str(tree.value) + '? ')
 
         # Print the branches
@@ -200,3 +224,29 @@ def print_tree(tree, indent=''):
         print_tree(tree.true_branch, indent + '  ')
         print(indent + 'False->', end="")
         print_tree(tree.false_branch, indent + '  ')
+
+
+def main():
+    data = [['slashdot', 'USA', 'yes', 18, 'None'],
+            ['google', 'France', 'yes', 23, 'Premium'],
+            ['reddit', 'USA', 'yes', 24, 'Basic'],
+            ['kiwitobes', 'France', 'yes', 23, 'Basic'],
+            ['google', 'UK', 'no', 21, 'Premium'],
+            ['(direct)', 'New Zealand', 'no', 12, 'None'],
+            ['(direct)', 'UK', 'no', 21, 'Basic'],
+            ['google', 'USA', 'no', 24, 'Premium'],
+            ['slashdot', 'France', 'yes', 19, 'None'],
+            ['reddit', 'USA', 'no', 18, 'None'],
+            ['google', 'UK', 'no', 18, 'None'],
+            ['kiwitobes', 'UK', 'no', 19, 'None'],
+            ['reddit', 'New Zealand', 'yes', 12, 'Basic'],
+            ['slashdot', 'UK', 'no', 21, 'None'],
+            ['google', 'UK', 'yes', 18, 'Basic'],
+            ['kiwitobes', 'France', 'yes', 19, 'Basic']]
+
+    tree = build_tree(data)
+    print_tree(tree)
+
+
+if __name__ == '__main__':
+    main()
