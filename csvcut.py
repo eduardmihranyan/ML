@@ -4,10 +4,10 @@ import sys
 
 
 DESCRIPTION = 'csvcut - returns cvs file with only desired columns'
-EXAMPLES = 'example: cat file.txt | csvcut -f "col_name"| less -SR'
+EXAMPLES = 'example: cat file.txt | csvcut -f "column_name1,column_name2"| less -SR'''
 
 
-def write_row(index ,row, output_stream, separator = ','):
+def write_row(index ,row, output_stream, separator):
     """
     Write_row modifeis the rows, leaving only the column desired
     :param index: the indeces of columns that need to remain in the file
@@ -23,7 +23,7 @@ def write_row(index ,row, output_stream, separator = ','):
         if i not in index:
             continue
         output_line += column + separator if i < mi else  column + '\n' 
-        
+    
     output_stream.write(output_line)
 
 
@@ -38,28 +38,28 @@ def main():
     index = []
     fields_int = []
 
-    if len(args.fields) == 0:
-        fields = []
-    elif args.fields == []:
+    if args.fields == 'all fields':
+        fields_int = list(range(len(columns)))
         fields = columns
+    elif len(args.fields) == 0:
+        fields = []
     else:
         fields = args.fields[0].strip().split(args.separator)
     
-        if ((fields[0]).isdigit()):
+        k = [x for x in fields if x.isdigit()]
+        
+        if (len(k) == len(fields)):
             for i in range (len(fields)):
                 fields_int.append(int(fields[i]))
-
-
-
     c = list(range(len(columns)))
     unique_l = list(set(columns))
     unique_c = [columns.index(x) for x in unique_l]
 
     for i,row in enumerate(first_rows):
         if i == 0:
-            if len(args.fields) == 0:
+            if len(fields) == 0:
                 index = []
-            elif ((fields[0]).isdigit()):
+            elif (len(fields_int) > 0):
                 index = fields_int
             else:
                 for j, column in enumerate(row):
@@ -88,7 +88,7 @@ def parse_args():
 
     parser.add_argument('-s', '--separator', type=str, help='Separator to be used', default=',')
     parser.add_argument('-o', '--output_file', type=str, help='Output file. stdout is used by default')
-    parser.add_argument('-f', '--fields', nargs = '*', type=str, 
+    parser.add_argument('-f', '--fields', nargs = '*', type=str, default = 'all fields',
         help='fields to be left, please give the fields with the seperator, same as the dataset, and withou any spaces')
     parser.add_argument('-c', '--complement', help = 'leaves only the complement', action = 'store_true')
     parser.add_argument('-u', '--unique', help = 'Remove duplicates from list of FIELDS', action = 'store_true')    
