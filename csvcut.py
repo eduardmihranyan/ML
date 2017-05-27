@@ -91,7 +91,8 @@ def parse_args():
     parser.add_argument('-f', '--fields', nargs = '*', type=str, default = 'all fields',
         help='fields to be left, please give the fields with the seperator, same as the dataset, and withou any spaces')
     parser.add_argument('-c', '--complement', help = 'leaves only the complement', action = 'store_true')
-    parser.add_argument('-u', '--unique', help = 'Remove duplicates from list of FIELDS', action = 'store_true')    
+    parser.add_argument('-u', '--unique', help = 'Remove duplicates from list of FIELDS', action = 'store_true') 
+    parser.add_argument('-h', '--help', action = 'store_true')   
     
 
     parser.add_argument('file', nargs='?', help='File to read input from. stdin is used by default')
